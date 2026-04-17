@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activate WhatsApp Scheduler Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #008069, #00a884);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #008069;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #54656f;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .license-box {
+            background: #f0f2f5;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .license-key {
+            background: white;
+            border: 2px dashed #008069;
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #111b21;
+            margin: 16px 0;
+            word-break: break-all;
+        }
+        .activate-btn {
+            background: #008069;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .activate-btn:hover {
+            background: #005a4f;
+        }
+        .success-message {
+            color: #008069;
+            font-weight: 500;
+            margin-top: 16px;
+            display: none;
+        }
+        .error-message {
+            color: #dc2626;
+            margin-top: 16px;
+            display: none;
+        }
+        .footer {
+            margin-top: 24px;
+            color: #8696a0;
+            font-size: 13px;
+        }
+        .manual-activate {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #54656f;
+        }
+        .manual-activate details {
+            cursor: pointer;
+        }
+        .manual-activate summary {
+            color: #008069;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        .manual-activate code {
+            background: #f0f2f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: block;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Thank You!</h1>
+        <p class="subtitle">You're now a WhatsApp Scheduler Pro user</p>
+        
+        <div class="license-box">
+            <p style="color: #54656f; margin-bottom: 8px;">Your License Key</p>
+            <div class="license-key" id="license-key-display">Generating...</div>
+            <p style="color: #8696a0; font-size: 13px; margin-top: 8px;">
+                Click below to activate automatically
+            </p>
+        </div>
+        
+        <button class="activate-btn" id="activate-btn">
+            🚀 Activate Pro License
+        </button>
+        
+        <div class="success-message" id="success-message">
+            ✅ License activated! Redirecting to WhatsApp Web...
+        </div>
+        <div class="error-message" id="error-message">
+            Automatic activation failed. Try manual method below.
+        </div>
+        
+        <div class="manual-activate">
+            <details>
+                <summary>Manual activation (if auto fails)</summary>
+                <p style="margin-top: 12px;">1. Copy your license key above</p>
+                <p>2. Click the extension icon in Chrome</p>
+                <p>3. Right-click the popup → Inspect</p>
+                <p>4. Go to Console tab</p>
+                <p>5. Paste and run this command:</p>
+                <code>chrome.runtime.sendMessage({ action: "setLicense", license: "pro" });</code>
+            </details>
+        </div>
+        
+        <div class="footer">
+            Return to WhatsApp Web and enjoy unlimited scheduling!
+        </div>
+    </div>
+    
+    <script>
+        const licenseKey = 'PRO_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        document.getElementById('license-key-display').textContent = licenseKey;
+        
+        document.getElementById('activate-btn').addEventListener('click', () => {
+            try {
+                chrome.runtime.sendMessage(
+                    "YOUR_EXTENSION_ID_HERE", 
+                    { action: "setLicense", license: "pro" },
+                    (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.error(chrome.runtime.lastError);
+                            document.getElementById('error-message').style.display = 'block';
+                        } else if (response?.success) {
+                            document.getElementById('success-message').style.display = 'block';
+                            document.getElementById('activate-btn').style.display = 'none';
+                            
+                            setTimeout(() => {
+                                window.location.href = 'https://web.whatsapp.com';
+                            }, 2000);
+                        } else {
+                            document.getElementById('error-message').style.display = 'block';
+                        }
+                    }
+                );
+            } catch (e) {
+                console.error(e);
+                document.getElementById('error-message').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
