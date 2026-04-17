@@ -56,75 +56,45 @@
             margin: 16px 0;
             word-break: break-all;
         }
-        .activate-btn {
+        .copy-btn {
             background: #008069;
             color: white;
             border: none;
-            padding: 16px 32px;
+            padding: 12px 24px;
             border-radius: 30px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
             transition: background 0.2s;
+            margin-bottom: 16px;
         }
-        .activate-btn:hover {
+        .copy-btn:hover {
             background: #005a4f;
         }
-        .activate-btn:disabled {
-            background: #8696a0;
-            cursor: not-allowed;
-        }
-        .success-message {
-            color: #008069;
-            font-weight: 500;
+        .instruction {
+            color: #54656f;
+            font-size: 14px;
             margin-top: 16px;
-            display: none;
+            text-align: left;
         }
-        .error-message {
-            color: #dc2626;
-            margin-top: 16px;
-            display: none;
+        .instruction ol {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+        .instruction li {
+            margin-bottom: 8px;
         }
         .footer {
             margin-top: 24px;
             color: #8696a0;
             font-size: 13px;
         }
-        .manual-activate {
-            margin-top: 20px;
-            font-size: 13px;
-            color: #54656f;
-        }
-        .manual-activate details {
-            cursor: pointer;
-        }
-        .manual-activate summary {
+        .success-message {
             color: #008069;
             font-weight: 500;
-            margin-bottom: 12px;
-        }
-        .manual-activate code {
-            background: #f0f2f5;
-            padding: 4px 8px;
-            border-radius: 4px;
-            display: block;
             margin-top: 8px;
-            font-size: 11px;
-            word-break: break-all;
-        }
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s linear infinite;
-            margin-left: 8px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            display: none;
         }
     </style>
 </head>
@@ -136,32 +106,23 @@
         <div class="license-box">
             <p style="color: #54656f; margin-bottom: 8px;">Your License Key</p>
             <div class="license-key" id="license-key-display">Loading...</div>
-            <p style="color: #8696a0; font-size: 13px; margin-top: 8px;">
-                Click below to activate automatically
-            </p>
         </div>
         
-        <button class="activate-btn" id="activate-btn">
-            🚀 Activate Pro License
+        <button class="copy-btn" id="copy-btn">
+            📋 Copy License Key
         </button>
         
-        <div class="success-message" id="success-message">
-            ✅ License activated! Redirecting to WhatsApp Web...
-        </div>
-        <div class="error-message" id="error-message">
-            Activation failed. Please try again or use manual method below.
+        <div class="success-message" id="copy-success">
+            ✅ Copied to clipboard!
         </div>
         
-        <div class="manual-activate">
-            <details>
-                <summary>Manual activation (if auto fails)</summary>
-                <p style="margin-top: 12px;">1. Copy the license key above</p>
-                <p>2. Click the extension icon in Chrome</p>
-                <p>3. Right-click the popup → Inspect</p>
-                <p>4. Go to Console tab</p>
-                <p>5. Paste and run this command:</p>
-                <code id="manual-command">chrome.runtime.sendMessage({ action: "setLicense", license: "pro" });</code>
-            </details>
+        <div class="instruction">
+            <strong>To activate Pro:</strong>
+            <ol>
+                <li>Click the <strong>⏰ WhatsApp Scheduler</strong> icon in Chrome toolbar</li>
+                <li>Paste your license key in the input box</li>
+                <li>Click <strong>"Activate Pro"</strong></li>
+            </ol>
         </div>
         
         <div class="footer">
@@ -170,103 +131,48 @@
     </div>
     
     <script>
-        // ========== CONFIGURATION ==========
-        const API_URL = 'https://wa-scheduler-backend.vercel.app/api/validate';
-        const EXTENSION_ID = 'ihfimplkkiaemjdoepipggcoaeihpoka'; // Replace with your actual extension ID
-        
-        // ========== GET LICENSE KEY FROM URL ==========
+        // Get license key from URL
         const urlParams = new URLSearchParams(window.location.search);
         const licenseKey = urlParams.get('key');
         
         const keyDisplay = document.getElementById('license-key-display');
-        const activateBtn = document.getElementById('activate-btn');
-        const errorEl = document.getElementById('error-message');
-        const successEl = document.getElementById('success-message');
+        const copyBtn = document.getElementById('copy-btn');
+        const copySuccess = document.getElementById('copy-success');
         
-        // Display license key or error
         if (licenseKey) {
             keyDisplay.textContent = licenseKey;
         } else {
-            keyDisplay.textContent = 'No license key found';
+            keyDisplay.textContent = 'No license key found. Please contact support.';
             keyDisplay.style.color = '#dc2626';
-            activateBtn.disabled = true;
-            activateBtn.textContent = 'No License Key';
-            errorEl.textContent = 'Missing license key. Please contact support.';
-            errorEl.style.display = 'block';
+            copyBtn.disabled = true;
+            copyBtn.textContent = 'No Key Available';
         }
         
-        // ========== ACTIVATE BUTTON HANDLER ==========
-        activateBtn.addEventListener('click', async () => {
-            if (!licenseKey) {
-                errorEl.textContent = 'No license key to activate';
-                errorEl.style.display = 'block';
-                return;
-            }
-            
-            // Show loading state
-            activateBtn.disabled = true;
-            activateBtn.innerHTML = 'Validating... <span class="loading"></span>';
-            errorEl.style.display = 'none';
+        copyBtn.addEventListener('click', async () => {
+            if (!licenseKey) return;
             
             try {
-                // Step 1: Validate key with backend
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        action: 'validate', 
-                        key: licenseKey 
-                    })
-                });
+                await navigator.clipboard.writeText(licenseKey);
+                copySuccess.style.display = 'block';
+                copyBtn.textContent = '✅ Copied!';
                 
-                const data = await response.json();
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                    copyBtn.textContent = '📋 Copy License Key';
+                }, 3000);
+            } catch (e) {
+                // Fallback
+                keyDisplay.select();
+                document.execCommand('copy');
+                copySuccess.style.display = 'block';
+                copyBtn.textContent = '✅ Copied!';
                 
-                if (!data.valid) {
-                    throw new Error(data.error || 'Invalid license key');
-                }
-                
-                // Step 2: Key is valid, activate extension
-                activateBtn.innerHTML = 'Activating extension... <span class="loading"></span>';
-                
-                chrome.runtime.sendMessage(
-                    EXTENSION_ID,
-                    { action: "setLicense", license: "pro" },
-                    (response) => {
-                        if (chrome.runtime.lastError) {
-                            console.error('Extension error:', chrome.runtime.lastError);
-                            throw new Error('Could not connect to extension. Make sure it is installed.');
-                        }
-                        
-                        if (response?.success) {
-                            // Success!
-                            successEl.style.display = 'block';
-                            activateBtn.style.display = 'none';
-                            errorEl.style.display = 'none';
-                            
-                            // Redirect to WhatsApp Web after 2 seconds
-                            setTimeout(() => {
-                                window.location.href = 'https://web.whatsapp.com';
-                            }, 2000);
-                        } else {
-                            throw new Error('Extension activation failed');
-                        }
-                    }
-                );
-                
-            } catch (error) {
-                console.error('Activation error:', error);
-                errorEl.textContent = error.message || 'Activation failed. Try manual method below.';
-                errorEl.style.display = 'block';
-                activateBtn.disabled = false;
-                activateBtn.innerHTML = '🚀 Activate Pro License';
+                setTimeout(() => {
+                    copySuccess.style.display = 'none';
+                    copyBtn.textContent = '📋 Copy License Key';
+                }, 3000);
             }
         });
-        
-        // Update manual command with actual extension ID
-        if (EXTENSION_ID !== 'YOUR_EXTENSION_ID_HERE') {
-            document.getElementById('manual-command').textContent = 
-                `chrome.runtime.sendMessage("${EXTENSION_ID}", { action: "setLicense", license: "pro" });`;
-        }
     </script>
 </body>
 </html>
